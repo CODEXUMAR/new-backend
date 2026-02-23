@@ -15,7 +15,7 @@ const registeruser=asynchandler(async (req ,res)=>{
     //check for user creation
     //return res
 
-    const{fullname,email,username}=req.body
+    const{fullname,email,username,password}=req.body
     console.log("email",email)
 
 
@@ -26,7 +26,7 @@ const registeruser=asynchandler(async (req ,res)=>{
             throw new ApiError(400,"All fields are required")
         }
 
-    const  existeduser=User.findOne({
+    const  existeduser=await User.findOne({
         $or:[{username},{email}]
 
     })
@@ -52,7 +52,7 @@ const registeruser=asynchandler(async (req ,res)=>{
         password,
         username:username.toLowerCase()
     })
-    const createduser=await user.findById(user_id).select(
+    const createduser=await User.findById(user._id).select(
         "-password -refreshToken"
 
     )
