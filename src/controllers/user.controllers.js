@@ -5,6 +5,7 @@ import {uploadOnCloudinary} from "../utils/cloudinary.js";
 import { Apiresponse } from "../utils/apiresponse.js";
 import { genSalt } from "bcrypt";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 
 const generateAccessTokenANDRefeshToken = async (userId) => {
@@ -345,6 +346,54 @@ const getUserChannelProfile=asynchandler(async(req,res)=>{
     }
     return res.status(200).json(new Apiresponse(200,channel[0],"user channel fethecd succesfuly"))
 })
+const getwatchhistory=asynchandler(async(req,res)=>{
+    const user=await User.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(req.user._id)
+            }
+        },
+        {
+            $lookup:{
+                from:"vidoes",
+                localField:"watchHistory",
+                foreignField:"_id",
+                as:"WatchHistory",
+                pipeline:[
+                    {
+                        $lookup:{
+                            from:"Users",
+                            localField:"owner",
+                            foreignField:"_id",
+                            as:"owner",
+                            pipeline:[
+                                {
+                                    $project:{
+                                        fullname:1,
+                                        avatar:1,
+                                        username:1
+                                    }
+                                },
+                                {
+                                    $addFields:{
+                                        owner:{
+                                            $first:"$owner"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+
+            }
+
+        }
+    ])
+    return 
+    res.status(200).json(new Apiresponse(200,user[0].WatchHistory,"watch hsitory fetched successfully"))
+
+})
 
 
 export {
@@ -356,5 +405,7 @@ export {
     getcurrentuser,
     updateAccountdetails,
     updateAvatardetails,
-    updateCoverImagedetails
+    updateCoverImagedetails,
+    getUserChannelProfile,
+    getwatchhistory
 }
